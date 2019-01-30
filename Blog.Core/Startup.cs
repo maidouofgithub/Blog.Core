@@ -183,7 +183,7 @@ namespace Blog.Core
             services.AddMvc(o =>
             {
                 o.Filters.Add(typeof(GlobalExceptionsFilter));
-            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             #endregion
 
