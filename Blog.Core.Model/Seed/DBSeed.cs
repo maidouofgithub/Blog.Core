@@ -22,6 +22,11 @@ namespace Blog.Core.Model.Models
                 // 如果生成过了，第二次，就不用再执行一遍了,注释掉该方法即可
                 myContext.CreateTableByEntity(false, typeof(Advertisement), typeof(BlogArticle), typeof(Guestbook), typeof(Module), typeof(ModulePermission), typeof(OperateLog), typeof(PasswordLib), typeof(Permission), typeof(Role), typeof(RoleModulePermission), typeof(sysUserInfo), typeof(Topic), typeof(TopicDetail), typeof(UserRole));
 
+                // 后期单独处理某些表
+                //myContext.Db.CodeFirst.InitTables(typeof(sysUserInfo));
+                //myContext.Db.CodeFirst.InitTables(typeof(Permission)); 
+                //myContext.Db.CodeFirst.InitTables(typeof(Advertisement));
+
 
                 #region Advertisement
                 if (!await myContext.Db.Queryable<Advertisement>().AnyAsync())
@@ -218,7 +223,7 @@ namespace Blog.Core.Model.Models
             }
             catch (Exception ex)
             {
-
+                throw new Exception("1、注意要先创建空的数据库\n2、"+ex.Message);
             }
         }
     }

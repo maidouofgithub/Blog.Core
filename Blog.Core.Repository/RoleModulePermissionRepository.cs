@@ -16,9 +16,10 @@ namespace Blog.Core.Repository
         {
             var list = await Task.Run(() => Db.Queryable<RoleModulePermission>()
                     .Mapper(it => it.Role, it => it.RoleId)
+                    .Mapper(it => it.Permission, it => it.PermissionId)
                     .Mapper(it => it.Module, it => it.ModuleId).ToList());
 
-            return list;
+            return null;
         }
 
     }

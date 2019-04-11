@@ -24,6 +24,7 @@ namespace Blog.Core.Model.Models
             uUpdateTime = DateTime.Now;
             uLastErrTime = DateTime.Now;
             uErrorCount = 0;
+            name = "";
 
         }
         /// <summary>
@@ -58,21 +59,51 @@ namespace Blog.Core.Model.Models
         /// <summary>
         /// 创建时间
         /// </summary>
-        public System.DateTime uCreateTime { get; set; }
+        public System.DateTime uCreateTime { get; set; } = DateTime.Now;
         /// <summary>
         /// 更新时间
         /// </summary>
-        public System.DateTime uUpdateTime { get; set; }
+        public System.DateTime uUpdateTime { get; set; } = DateTime.Now;
 
         /// <summary>
         ///最后登录时间 
         /// </summary>
-        public DateTime uLastErrTime { get; set; }
+        public DateTime uLastErrTime { get; set; }= DateTime.Now;
 
         /// <summary>
         ///错误次数 
         /// </summary>
         public int uErrorCount { get; set; }
+
+
+
+        /// <summary>
+        /// 登录账号
+        /// </summary>
+        [SugarColumn(Length = 60, IsNullable = true)]
+        public string name { get; set; }
+
+        // 性别
+        [SugarColumn(IsNullable = true)]
+        public int sex { get; set; } = 0;
+        // 年龄
+        [SugarColumn(IsNullable = true)]
+        public int age { get; set; }
+        // 生日
+        [SugarColumn(IsNullable = true)]
+        public DateTime birth { get; set; } = DateTime.Now;
+        // 地址
+        [SugarColumn(Length = 200, IsNullable = true)]
+        public string addr { get; set; }
+
+        [SugarColumn(IsNullable = true)]
+        public bool tdIsDelete { get; set; }
+
+
+        [SugarColumn(IsIgnore = true)]
+        public int RID { get; set; }
+        [SugarColumn(IsIgnore = true)]
+        public string RoleName { get; set; }
 
     }
 }
