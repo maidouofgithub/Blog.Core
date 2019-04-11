@@ -4,7 +4,7 @@ using Blog.Core.Services.BASE;
 using Blog.Core.Model.Models;
 using System.Threading.Tasks;
 using System.Linq;
-
+using Blog.Core.Common;
 
 namespace Blog.Core.Services
 {	
@@ -14,11 +14,11 @@ namespace Blog.Core.Services
 	public class UserRoleServices : BaseServices<UserRole>, IUserRoleServices
     {
 	
-        IUserRoleRepository dal;
+        IUserRoleRepository _dal;
         public UserRoleServices(IUserRoleRepository dal)
         {
-            this.dal = dal;
-            base.baseDal = dal;
+            this._dal = dal;
+            base.BaseDal = dal;
         }
         /// <summary>
         /// 
@@ -31,19 +31,27 @@ namespace Blog.Core.Services
             UserRole userRole = new UserRole(uid, rid);
 
             UserRole model = new UserRole();
-            var userList = await dal.Query(a => a.UserId == userRole.UserId && a.RoleId == userRole.RoleId);
+            var userList = await base.Query(a => a.UserId == userRole.UserId && a.RoleId == userRole.RoleId);
             if (userList.Count > 0)
             {
                 model = userList.FirstOrDefault();
             }
             else
             {
-                var id = await dal.Add(userRole);
-                model = await dal.QueryByID(id);
+                var id = await base.Add(userRole);
+                model = await base.QueryById(id);
             }
 
             return model;
 
+        }
+
+
+
+        [Caching(AbsoluteExpiration = 30)]
+        public async Task<int> GetRoleIdByUid(int uid)
+        {
+            return ((await base.Query(d => d.UserId == uid)).OrderByDescending(d => d.Id).LastOrDefault()?.RoleId).ObjToInt();
         }
     }
 }

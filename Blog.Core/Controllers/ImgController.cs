@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Blog.Core.Model;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Blog.Core.Controllers
@@ -28,7 +27,34 @@ namespace Blog.Core.Controllers
             return "value";
         }
 
+        // GET: api/Download
+        /// <summary>
+        /// 下载图片（支持中文字符）
+        /// </summary>
+        /// <param name="environment"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("down")]
+        public FileStreamResult DownImg([FromServices]IHostingEnvironment environment)
+        {
+            string foldername = "";
+            string filepath = Path.Combine(environment.WebRootPath, foldername, "测试下载中文名称的图片.png");
+            var stream = System.IO.File.OpenRead(filepath);
+            string fileExt = ".jpg";  // 这里可以写一个获取文件扩展名的方法，获取扩展名
+            //获取文件的ContentType
+            var provider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+            var memi = provider.Mappings[fileExt];
+            var fileName = Path.GetFileName(filepath);
 
+
+            return File(stream, memi, fileName);
+        }
+
+        /// <summary>
+        /// 上传图片
+        /// </summary>
+        /// <param name="environment"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("Pic")]
         public async Task<MessageModel<string>> InsertPicture([FromServices]IHostingEnvironment environment)
@@ -37,7 +63,7 @@ namespace Blog.Core.Controllers
             string path = string.Empty;
             string foldername = "images";
             var files = Request.Form.Files;
-            if (files == null || files.Count() <= 0) { data.Msg = "请选择上传的文件。"; return data; }
+            if (files == null || !files.Any()) { data.msg = "请选择上传的文件。"; return data; }
             //格式限制
             var allowType = new string[] { "image/jpg", "image/png", "image/jpeg" };
 
@@ -63,22 +89,22 @@ namespace Blog.Core.Controllers
 
                     data = new MessageModel<string>()
                     {
-                        Response = strpath,
-                        Msg = "上传成功",
-                        Success = true,
+                        response = strpath,
+                        msg = "上传成功",
+                        success = true,
                     };
                     return data;
                 }
                 else
                 {
-                    data.Msg = "图片过大";
+                    data.msg = "图片过大";
                     return data;
                 }
             }
             else
 
             {
-                data.Msg = "图片格式错误";
+                data.msg = "图片格式错误";
                 return data;
             }
         }
@@ -102,5 +128,5 @@ namespace Blog.Core.Controllers
         {
         }
     }
-  
+
 }
