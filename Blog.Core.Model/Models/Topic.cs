@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Blog.Core.Model.Models
 {
-    /// <summary>博客文章
-    /// 
-    /// </summary
+    /// <summary>
+    /// Tibug 类别
+    /// </summary>
     public class Topic:RootEntity
     {
         public Topic()
@@ -17,19 +17,19 @@ namespace Blog.Core.Model.Models
             this.TopicDetail = new List<TopicDetail>();
             this.tUpdatetime = DateTime.Now;
         }
-        [SugarColumn(Length = 200, IsNullable = true)]
+        [SugarColumn(Length = 200, IsNullable = true,ColumnDataType ="nvarchar")]
         public string tLogo { get; set; }
 
-        [SugarColumn(Length = 200, IsNullable = true)]
+        [SugarColumn(Length = 200, IsNullable = true,ColumnDataType ="nvarchar")]
         public string tName { get; set; }
 
-        [SugarColumn(Length = 400, IsNullable = true)]
+        [SugarColumn(Length = 400, IsNullable = true,ColumnDataType ="nvarchar")]
         public string tDetail { get; set; }
 
-        [SugarColumn(Length = 200, IsNullable = true)]
+        [SugarColumn(Length = 200, IsNullable = true,ColumnDataType ="nvarchar")]
         public string tAuthor { get; set; }
 
-        [SugarColumn(Length = 200, IsNullable = true)]
+        [SugarColumn(Length = 200, IsNullable = true,ColumnDataType ="nvarchar")]
         public string tSectendDetail { get; set; }
 
         public bool tIsDelete { get; set; }

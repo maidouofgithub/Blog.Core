@@ -1,9 +1,13 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Blog.Core.Common.DB
 {
     public class BaseDBConfig
     {
+        private static string sqliteConnection = Appsettings.app(new string[] { "AppSettings", "Sqlite", "SqliteConnection" });
+        private static bool isSqliteEnabled = (Appsettings.app(new string[] { "AppSettings", "Sqlite", "Enabled" })).ObjToBool();
+
         private static string sqlServerConnection = Appsettings.app(new string[] { "AppSettings", "SqlServer", "SqlServerConnection" });
         private static bool isSqlServerEnabled = (Appsettings.app(new string[] { "AppSettings", "SqlServer", "Enabled" })).ObjToBool();
 
@@ -20,26 +24,47 @@ namespace Blog.Core.Common.DB
 
         private static string InitConn()
         {
-            if (isSqlServerEnabled)
+            if (isSqliteEnabled)
+            {
+                DbType = DataBaseType.Sqlite;
+                return $"DataSource=" + Path.Combine(Environment.CurrentDirectory, sqliteConnection);
+            }
+            else if (isSqlServerEnabled)
             {
                 DbType = DataBaseType.SqlServer;
-                return File.Exists(@"D:\my-file\dbCountPsw1.txt") ? File.ReadAllText(@"D:\my-file\dbCountPsw1.txt").Trim() : sqlServerConnection;
+                return DifDBConnOfSecurity(@"D:\my-file\dbCountPsw1.txt", @"c:\my-file\dbCountPsw1.txt", sqlServerConnection);
             }
             else if (isMySqlEnabled)
             {
                 DbType = DataBaseType.MySql;
-                return File.Exists(@"D:\my-file\dbCountPsw1_MySqlConn.txt") ? File.ReadAllText(@"D:\my-file\dbCountPsw1_MySqlConn.txt").Trim() : mySqlConnection;
+                return DifDBConnOfSecurity(@"D:\my-file\dbCountPsw1_MySqlConn.txt", @"c:\my-file\dbCountPsw1_MySqlConn.txt", mySqlConnection);
             }
             else if (IsOracleEnabled)
             {
                 DbType = DataBaseType.Oracle;
-                return File.Exists(@"D:\my-file\dbCountPsw1_OracleConn.txt") ? File.ReadAllText(@"D:\my-file\dbCountPsw1_OracleConn.txt").Trim() : oracleConnection;
+                return DifDBConnOfSecurity(@"D:\my-file\dbCountPsw1_OracleConn.txt", @"c:\my-file\dbCountPsw1_OracleConn.txt", oracleConnection);
             }
             else
             {
                 return "server=.;uid=sa;pwd=sa;database=WMBlogDB";
             }
 
+        }
+        private static string DifDBConnOfSecurity(params string[] conn)
+        {
+            foreach (var item in conn)
+            {
+                try
+                {
+                    if (File.Exists(item))
+                    {
+                        return File.ReadAllText(item).Trim();
+                    }
+                }
+                catch (System.Exception) { }
+            }
+
+            return conn[conn.Length - 1];
         }
 
     }

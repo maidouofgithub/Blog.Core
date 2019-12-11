@@ -69,7 +69,11 @@
             创建时间
             </summary>
         </member>
-        <!-- 对于成员“T:Blog.Core.Model.Models.BlogArticle”忽略有格式错误的 XML 注释 -->
+        <member name="T:Blog.Core.Model.Models.BlogArticle">
+            <summary>
+            博客文章
+            </summary>
+        </member>
         <member name="P:Blog.Core.Model.Models.BlogArticle.bID">
             <summary>
             主键
@@ -396,6 +400,16 @@
             是否是按钮
             </summary>
         </member>
+        <member name="P:Blog.Core.Model.Models.Permission.IsHide">
+            <summary>
+            是否是隐藏菜单
+            </summary>
+        </member>
+        <member name="P:Blog.Core.Model.Models.Permission.Func">
+            <summary>
+            按钮事件
+            </summary>
+        </member>
         <member name="P:Blog.Core.Model.Models.Permission.Pid">
             <summary>
             上一级菜单（0表示上一级无菜单）
@@ -641,8 +655,16 @@
             登录账号
             </summary>
         </member>
-        <!-- 对于成员“T:Blog.Core.Model.Models.Topic”忽略有格式错误的 XML 注释 -->
-        <!-- 对于成员“T:Blog.Core.Model.Models.TopicDetail”忽略有格式错误的 XML 注释 -->
+        <member name="T:Blog.Core.Model.Models.Topic">
+            <summary>
+            Tibug 类别
+            </summary>
+        </member>
+        <member name="T:Blog.Core.Model.Models.TopicDetail">
+            <summary>
+            Tibug 博文
+            </summary>
+        </member>
         <member name="T:Blog.Core.Model.Models.UserRole">
             <summary>
             用户跟角色关联表
@@ -700,6 +722,41 @@
             <param name="myContext"></param>
             <returns></returns>
         </member>
+        <member name="M:Blog.Core.Model.Models.FrameSeed.CreateModels(Blog.Core.Model.Models.MyContext)">
+            <summary>
+            生成Model层
+            </summary>
+            <param name="myContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Blog.Core.Model.Models.FrameSeed.CreateIRepositorys(Blog.Core.Model.Models.MyContext)">
+            <summary>
+            生成IRepository层
+            </summary>
+            <param name="myContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Blog.Core.Model.Models.FrameSeed.CreateIServices(Blog.Core.Model.Models.MyContext)">
+            <summary>
+            生成 IService 层
+            </summary>
+            <param name="myContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Blog.Core.Model.Models.FrameSeed.CreateRepository(Blog.Core.Model.Models.MyContext)">
+            <summary>
+            生成 Repository 层
+            </summary>
+            <param name="myContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Blog.Core.Model.Models.FrameSeed.CreateServices(Blog.Core.Model.Models.MyContext)">
+            <summary>
+            生成 Repository 层
+            </summary>
+            <param name="myContext"></param>
+            <returns></returns>
+        </member>
         <member name="P:Blog.Core.Model.Models.MyContext.ConnectionString">
             <summary>
             连接字符串 
@@ -730,6 +787,57 @@
             作　　者:Blog.Core
             </summary>
         </member>
+        <member name="M:Blog.Core.Model.Models.MyContext.Create_Model_ClassFileByDBTalbe(System.String,System.String,System.String[],System.String,System.Boolean)">
+            <summary>
+            功能描述:根据数据库表生产Model层
+            作　　者:Blog.Core
+            </summary>
+            <param name="strPath">实体类存放路径</param>
+            <param name="strNameSpace">命名空间</param>
+            <param name="lstTableNames">生产指定的表</param>
+            <param name="strInterface">实现接口</param>
+            <param name="blnSerializable">是否序列化</param>
+        </member>
+        <member name="M:Blog.Core.Model.Models.MyContext.Create_IRepository_ClassFileByDBTalbe(System.String,System.String,System.String[],System.String)">
+            <summary>
+            功能描述:根据数据库表生产IRepository层
+            作　　者:Blog.Core
+            </summary>
+            <param name="strPath">实体类存放路径</param>
+            <param name="strNameSpace">命名空间</param>
+            <param name="lstTableNames">生产指定的表</param>
+            <param name="strInterface">实现接口</param>
+        </member>
+        <member name="M:Blog.Core.Model.Models.MyContext.Create_IServices_ClassFileByDBTalbe(System.String,System.String,System.String[],System.String)">
+            <summary>
+            功能描述:根据数据库表生产IServices层
+            作　　者:Blog.Core
+            </summary>
+            <param name="strPath">实体类存放路径</param>
+            <param name="strNameSpace">命名空间</param>
+            <param name="lstTableNames">生产指定的表</param>
+            <param name="strInterface">实现接口</param>
+        </member>
+        <member name="M:Blog.Core.Model.Models.MyContext.Create_Repository_ClassFileByDBTalbe(System.String,System.String,System.String[],System.String)">
+            <summary>
+            功能描述:根据数据库表生产 Repository 层
+            作　　者:Blog.Core
+            </summary>
+            <param name="strPath">实体类存放路径</param>
+            <param name="strNameSpace">命名空间</param>
+            <param name="lstTableNames">生产指定的表</param>
+            <param name="strInterface">实现接口</param>
+        </member>
+        <member name="M:Blog.Core.Model.Models.MyContext.Create_Services_ClassFileByDBTalbe(System.String,System.String,System.String[],System.String)">
+            <summary>
+            功能描述:根据数据库表生产 Services 层
+            作　　者:Blog.Core
+            </summary>
+            <param name="strPath">实体类存放路径</param>
+            <param name="strNameSpace">命名空间</param>
+            <param name="lstTableNames">生产指定的表</param>
+            <param name="strInterface">实现接口</param>
+        </member>
         <member name="M:Blog.Core.Model.Models.MyContext.GetEntityDB``1">
             <summary>
             功能描述:获取数据库处理对象
@@ -744,40 +852,6 @@
             </summary>
             <param name="db">db</param>
             <returns>返回值</returns>
-        </member>
-        <member name="M:Blog.Core.Model.Models.MyContext.CreateClassFileByDBTalbe(System.String)">
-            <summary>
-            功能描述:根据数据库表生产实体类
-            作　　者:Blog.Core
-            </summary>       
-            <param name="strPath">实体类存放路径</param>
-        </member>
-        <member name="M:Blog.Core.Model.Models.MyContext.CreateClassFileByDBTalbe(System.String,System.String)">
-            <summary>
-            功能描述:根据数据库表生产实体类
-            作　　者:Blog.Core
-            </summary>
-            <param name="strPath">实体类存放路径</param>
-            <param name="strNameSpace">命名空间</param>
-        </member>
-        <member name="M:Blog.Core.Model.Models.MyContext.CreateClassFileByDBTalbe(System.String,System.String,System.String[])">
-            <summary>
-            功能描述:根据数据库表生产实体类
-            作　　者:Blog.Core
-            </summary>
-            <param name="strPath">实体类存放路径</param>
-            <param name="strNameSpace">命名空间</param>
-            <param name="lstTableNames">生产指定的表</param>
-        </member>
-        <member name="M:Blog.Core.Model.Models.MyContext.CreateClassFileByDBTalbe(System.String,System.String,System.String[],System.String,System.Boolean)">
-            <summary>
-            功能描述:根据数据库表生产实体类
-            作　　者:Blog.Core
-            </summary>
-            <param name="strPath">实体类存放路径</param>
-            <param name="strNameSpace">命名空间</param>
-            <param name="lstTableNames">生产指定的表</param>
-            <param name="strInterface">实现接口</param>
         </member>
         <member name="M:Blog.Core.Model.Models.MyContext.CreateTableByEntity``1(System.Boolean,``0[])">
             <summary>
@@ -800,8 +874,7 @@
             功能描述:获得一个DbContext
             作　　者:Blog.Core
             </summary>
-            <param name="blnIsAutoCloseConnection">是否自动关闭连接（如果为false，则使用接受时需要手动关闭Db）</param>
-            <returns>返回值</returns>
+            <returns></returns>
         </member>
         <member name="M:Blog.Core.Model.Models.MyContext.Init(System.String,SqlSugar.DbType)">
             <summary>
@@ -851,7 +924,7 @@
         </member>
         <member name="P:Blog.Core.Model.PageModel`1.page">
             <summary>
-            当前页数
+            当前页标
             </summary>
         </member>
         <member name="P:Blog.Core.Model.PageModel`1.pageCount">
@@ -862,6 +935,11 @@
         <member name="P:Blog.Core.Model.PageModel`1.dataCount">
             <summary>
             数据总数
+            </summary>
+        </member>
+        <member name="P:Blog.Core.Model.PageModel`1.PageSize">
+            <summary>
+            每页大小
             </summary>
         </member>
         <member name="P:Blog.Core.Model.PageModel`1.data">
@@ -1072,6 +1150,26 @@
         <member name="T:Blog.Core.Model.ViewModels.SidebarMenuViewModel">
             <summary>
             菜单展示model
+            </summary>
+        </member>
+        <member name="T:Blog.Core.Model.ViewModels.TestRestSharpGetDto">
+            <summary>
+            用来测试 RestSharp Get 请求
+            </summary>
+        </member>
+        <member name="P:Blog.Core.Model.ViewModels.TestRestSharpGetDto.success">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Blog.Core.Model.ViewModels.TestRestSharpGetDto.data">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:Blog.Core.Model.ViewModels.TestRestSharpPostDto">
+            <summary>
+            用来测试 RestSharp Post 请求
             </summary>
         </member>
         <member name="T:Blog.Core.Model.ViewModels.TopgbViewModels">

@@ -1,5 +1,6 @@
 ﻿using Blog.Core.IRepository.Base;
 using Blog.Core.IServices.BASE;
+using Blog.Core.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -62,6 +63,10 @@ namespace Blog.Core.Services.BASE
         public async Task<bool> Update(TEntity entity, string strWhere)
         {
             return await BaseDal.Update(entity, strWhere);
+        }
+        public async Task<bool> Update(object operateAnonymousObjects)
+        {
+            return await BaseDal.Update(operateAnonymousObjects);
         }
 
         public async Task<bool> Update(
@@ -242,13 +247,17 @@ namespace Blog.Core.Services.BASE
             strOrderByFileds);
         }
 
-        public async Task<List<TEntity>> QueryPage(Expression<Func<TEntity, bool>> whereExpression,
-        int intPageIndex = 0, int intPageSize = 20, string strOrderByFileds = null)
+        public async Task<PageModel<TEntity>> QueryPage(Expression<Func<TEntity, bool>> whereExpression,
+        int intPageIndex = 1, int intPageSize = 20, string strOrderByFileds = null)
         {
             return await BaseDal.QueryPage(whereExpression,
-         intPageIndex = 0, intPageSize, strOrderByFileds);
+         intPageIndex, intPageSize, strOrderByFileds);
         }
 
+        public async Task<List<TResult>> QueryMuch<T, T2, T3, TResult>(Expression<Func<T, T2, T3, object[]>> joinExpression, Expression<Func<T, T2, T3, TResult>> selectExpression, Expression<Func<T, T2, T3, bool>> whereLambda = null) where T : class, new()
+        {
+            return await BaseDal.QueryMuch(joinExpression, selectExpression, whereLambda);
+        }
     }
 
 }

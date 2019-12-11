@@ -10,16 +10,19 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Blog.Core.Controllers
 {
+    /// <summary>
+    /// Tibug 管理
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize(PermissionNames.Permission)]
+    [Authorize(Permissions.Name)]
     public class TopicDetailController : ControllerBase
     {
         readonly ITopicServices _topicServices;
         readonly ITopicDetailServices _topicDetailServices;
 
         /// <summary>
-        /// TopicDetailController
+        /// 构造函数
         /// </summary>
         /// <param name="topicServices"></param>
         /// <param name="topicDetailServices"></param>
@@ -31,66 +34,62 @@ namespace Blog.Core.Controllers
 
         /// <summary>
         /// 获取Bug数据列表（带分页）
+        /// 【无权限】
         /// </summary>
         /// <param name="page">页数</param>
         /// <param name="tname">专题类型</param>
+        /// <param name="key">关键字</param>
         /// <returns></returns>
         [HttpGet]
         [AllowAnonymous]
         public async Task<MessageModel<PageModel<TopicDetail>>> Get(int page = 1, string tname = "", string key = "")
         {
-            var data = new MessageModel<PageModel<TopicDetail>>();
-            int intTotalCount = 6;
-            int totalCount = 0;
-            int pageCount = 1;
+            int tid = 0;
 
-            //总数据，使用AOP切面缓存
-            //topicDetails = await _topicDetailServices.GetTopicDetails();
-            var topicDetails = await _topicDetailServices.Query(a => !a.tdIsDelete && a.tdSectendDetail == "tbug");
-
-            if (!string.IsNullOrEmpty(key))
+            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
             {
-                topicDetails = topicDetails.Where(t => (t.tdName != null && t.tdName.Contains(key)) || (t.tdDetail != null && t.tdDetail.Contains(key))).ToList();
+                key = "";
             }
-
+            if (string.IsNullOrEmpty(tname) || string.IsNullOrWhiteSpace(tname))
+            {
+                tname = "";
+            }
             tname = UnicodeHelper.UnicodeToString(tname);
 
             if (!string.IsNullOrEmpty(tname))
             {
-                var tid = (await _topicServices.Query(ts => ts.tName == tname)).FirstOrDefault()?.Id.ObjToInt();
-                topicDetails = topicDetails.Where(t => t.TopicId == tid).ToList();
+                tid = ((await _topicServices.Query(ts => ts.tName == tname)).FirstOrDefault()?.Id).ObjToInt();
             }
 
-            //筛选后的数据总数
-            totalCount = topicDetails.Count;
-            //筛选后的总页数
-            pageCount = (Math.Ceiling(totalCount.ObjToDecimal() / intTotalCount.ObjToDecimal())).ObjToInt();
+            int intPageSize = 6;
 
-            topicDetails = topicDetails.OrderByDescending(d => d.Id).Skip((page - 1) * intTotalCount).Take(intTotalCount).ToList();
+
+            var data = await _topicDetailServices.QueryPage(a => !a.tdIsDelete && a.tdSectendDetail == "tbug" && ((tid == 0 && true) || (tid > 0 && a.TopicId == tid)) && ((a.tdName != null && a.tdName.Contains(key)) || (a.tdDetail != null && a.tdDetail.Contains(key))), page, intPageSize, " Id desc ");
+
+
 
             return new MessageModel<PageModel<TopicDetail>>()
             {
                 msg = "获取成功",
-                success = totalCount >= 0,
-                response = new PageModel<TopicDetail>()
-                {
-                    page = page,
-                    pageCount = pageCount,
-                    dataCount = totalCount,
-                    data = topicDetails,
-                }
+                success = data.dataCount >= 0,
+                response = data
             };
 
         }
 
+        /// <summary>
+        /// 获取详情【无权限】
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         // GET: api/TopicDetail/5
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<MessageModel<TopicDetail>> Get(int id)
         {
             var data = new MessageModel<TopicDetail>();
-            var response = await _topicDetailServices.QueryById(id);
-            data.response = response.tdIsDelete ? null : response;
+            var response = id > 0 ? await _topicDetailServices.QueryById(id) : new TopicDetail();
+            data.response = (response?.tdIsDelete).ObjToBool() ? new TopicDetail() : response;
             if (data.response != null)
             {
                 data.success = true;
@@ -100,6 +99,11 @@ namespace Blog.Core.Controllers
             return data;
         }
 
+        /// <summary>
+        /// 添加一个 BUG 【无权限】
+        /// </summary>
+        /// <param name="topicDetail"></param>
+        /// <returns></returns>
         // POST: api/TopicDetail
         [HttpPost]
         [AllowAnonymous]
@@ -124,6 +128,11 @@ namespace Blog.Core.Controllers
             return data;
         }
 
+        /// <summary>
+        /// 更新 bug
+        /// </summary>
+        /// <param name="topicDetail"></param>
+        /// <returns></returns>
         // PUT: api/TopicDetail/5
         [HttpPut]
         public async Task<MessageModel<string>> Update([FromBody] TopicDetail topicDetail)
@@ -142,6 +151,11 @@ namespace Blog.Core.Controllers
             return data;
         }
 
+        /// <summary>
+        /// 删除 bug
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         // DELETE: api/ApiWithActions/5
         [HttpDelete]
         public async Task<MessageModel<string>> Delete(int id)

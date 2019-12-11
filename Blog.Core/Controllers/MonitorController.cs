@@ -4,99 +4,82 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Blog.Core.Common.Helper;
+using Blog.Core.Common.LogHelper;
+using Blog.Core.Hubs;
 using Blog.Core.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Blog.Core.Controllers
 {
-    //[Authorize(PermissionNames.Permission)]
     [Route("api/[Controller]/[action]")]
     [ApiController]
+    [AllowAnonymous]
     public class MonitorController : Controller
     {
+        private readonly IHubContext<ChatHub> _hubContext;
 
+        public MonitorController(IHubContext<ChatHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
 
+        /// <summary>
+        /// SignalR send data
+        /// </summary>
+        /// <returns></returns>
         // GET: api/Logs
         [HttpGet]
-        public async Task<MessageModel<List<LogInfo>>> Get()
+        public MessageModel<List<LogInfo>> Get()
         {
-            var aopLogs = FileHelper.ReadFile(Path.Combine(Directory.GetCurrentDirectory(), "Log", "AOPLog.log"), Encoding.UTF8)
-                .Split("--------------------------------")
-                .Where(d => !string.IsNullOrEmpty(d) && d != "\n" && d != "\r\n")
-                .Select(d => new LogInfo
-                {
-                    Datetime = d.Split("|")[0],
-                    Content = d.Split("|")[1]?.Replace("\r\n","<br>"),
-                    LogColor="AOP",
-                }).ToList();
 
-
-            var excLogs = FileHelper.ReadFile(Path.Combine(Directory.GetCurrentDirectory(), "Log", $"GlobalExcepLogs_{System.DateTime.Now.ToString("yyyMMdd")}.log"), Encoding.UTF8)
-                .Split("--------------------------------")
-                .Where(d => !string.IsNullOrEmpty(d) && d != "\n" && d != "\r\n")
-                .Select(d => new LogInfo
-                {
-                    Datetime = d.Split("|")[0],
-                    Content = d.Split("|")[1]?.Replace("\r\n", "<br>"),
-                    LogColor="EXC",
-                }).ToList();
-
-
-            var sqlLogs = FileHelper.ReadFile(Path.Combine(Directory.GetCurrentDirectory(), "Log", "SqlLog.log"), Encoding.UTF8)
-                .Split("--------------------------------")
-                .Where(d => !string.IsNullOrEmpty(d) && d != "\n" && d != "\r\n")
-                .Select(d => new LogInfo
-                {
-                    Datetime = d.Split("|")[0],
-                    Content = d.Split("|")[1]?.Replace("\r\n", "<br>"),
-                    LogColor="SQL",
-                }).ToList();
-
-            aopLogs.AddRange(excLogs);
-            aopLogs.AddRange(sqlLogs);
-            aopLogs = aopLogs.OrderByDescending(d => d.Datetime).Take(100).ToList();
+            _hubContext.Clients.All.SendAsync("ReceiveUpdate", LogLock.GetLogData()).Wait();
 
             return new MessageModel<List<LogInfo>>()
             {
                 msg = "获取成功",
                 success = true,
-                response = aopLogs
+                response = null
             };
         }
 
-        // GET: api/Logs/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+
+
+        [HttpGet]
+        public MessageModel<RequestApiWeekView> GetRequestApiinfoByWeek()
         {
-            return "value";
+            return new MessageModel<RequestApiWeekView>()
+            {
+                msg = "获取成功",
+                success = true,
+                response = LogLock.RequestApiinfoByWeek()
+            };
         }
 
-        // POST: api/Logs
-        [HttpPost]
-        public void Post([FromBody] string value)
+        [HttpGet]
+        public MessageModel<AccessApiDateView> GetAccessApiByDate()
         {
+            return new MessageModel<AccessApiDateView>()
+            {
+                msg = "获取成功",
+                success = true,
+                response = LogLock.AccessApiByDate()
+            };
         }
 
-        // PUT: api/Logs/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpGet]
+        public MessageModel<AccessApiDateView> GetAccessApiByHour()
         {
-        }
-
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            return new MessageModel<AccessApiDateView>()
+            {
+                msg = "获取成功",
+                success = true,
+                response = LogLock.AccessApiByHour()
+            };
         }
 
     }
 
-    public class LogInfo
-    {
-        public string Datetime { get; set; }
-        public string Content { get; set; }
-        public string IP { get; set; }
-        public string LogColor { get; set; }
-    }
+
 }

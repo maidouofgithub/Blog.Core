@@ -12,19 +12,18 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="System.IO" #>
 <#@ include file="$(ProjectDir)DbHelper.ttinclude"  #>
-
 <#@ include file="$(ProjectDir)ModelAuto.ttinclude"	#>
+<# var manager = new Manager(Host, GenerationEnvironment, true); #>
 
 
 <# 
-    var OutputPath1 = Path.GetDirectoryName(Host.TemplateFile)+"\\work";
+	var OutputPath1 =Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Host.TemplateFile+"..")+"..")+"..");
+	OutputPath1=Path.Combine(OutputPath1,"Blog.Core.Services","Services_New");
 	if (!Directory.Exists(OutputPath1))
 	{
 	    Directory.CreateDirectory(OutputPath1);
 	}
-	#> 
-<# var manager = new Manager(Host, GenerationEnvironment, true) { OutputPath = OutputPath1 }; #>
-
+#>
 
 
 
@@ -42,10 +41,14 @@ if(tableName!=""){
 
 
 using System;
-using Blog.Core.FrameWork.IServices;
-using Blog.Core.FrameWork.IRepository;
-using Blog.Core.FrameWork.Entity;
-namespace Blog.Core.FrameWork.Services
+using System.Threading.Tasks;
+using Blog.Core.Common;
+using Blog.Core.IRepository;
+using Blog.Core.IRepository.UnitOfWork;
+using Blog.Core.IServices;
+using Blog.Core.Model.Models;
+using Blog.Core.Services.BASE;
+namespace Blog.Core.Services
 {	
 	/// <summary>
 	/// <#=tableName#>Services
@@ -77,17 +80,21 @@ namespace Blog.Core.FrameWork.Services
 <# 
     foreach(System.Data.DataRow row in schema.Rows) 
     {  
-		manager.StartBlock(row["TABLE_NAME"].ToString()+"Services"+".cs");
+		manager.StartBlock(row["TABLE_NAME"].ToString()+"Services"+".cs",OutputPath1);
 	 #>
 	//----------<#=row["TABLE_NAME"].ToString()#>开始----------
     
 
-using System;
-using Blog.Core.FrameWork.IServices;
-using Blog.Core.FrameWork.IRepository;
-using Blog.Core.FrameWork.Entity;
 
-namespace Blog.Core.FrameWork.Services
+using System;
+using System.Threading.Tasks;
+using Blog.Core.Common;
+using Blog.Core.IRepository;
+using Blog.Core.IRepository.UnitOfWork;
+using Blog.Core.IServices;
+using Blog.Core.Model.Models;
+using Blog.Core.Services.BASE;
+namespace Blog.Core.Services
 {	
 	/// <summary>
 	/// <#=row["TABLE_NAME"].ToString()#>Services
@@ -111,16 +118,21 @@ namespace Blog.Core.FrameWork.Services
 		} 
 
 		{  
-		manager.StartBlock("BaseServices.cs");//文件名
+		manager.StartBlock("BaseServices.cs",OutputPath1);//文件名
 	 #>
     
 	//----------开始----------
 	
+
 using System;
-using Blog.Core.FrameWork.Entity;
-using Blog.Core.FrameWork.IServices;
-using Blog.Core.FrameWork.IRepository;
-namespace Blog.Core.FrameWork.Services
+using System.Threading.Tasks;
+using Blog.Core.Common;
+using Blog.Core.IRepository;
+using Blog.Core.IRepository.UnitOfWork;
+using Blog.Core.IServices;
+using Blog.Core.Model.Models;
+using Blog.Core.Services.BASE;
+namespace Blog.Core.Services
 {	
 	/// <summary>
 	/// IBaseRepository

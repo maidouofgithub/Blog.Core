@@ -1,6 +1,8 @@
 ﻿using Blog.Core.Common.DB;
 using Blog.Core.IRepository.Base;
+using Blog.Core.IRepository.UnitOfWork;
 using Blog.Core.Model;
+using Blog.Core.Model.Models;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
@@ -12,31 +14,20 @@ namespace Blog.Core.Repository.Base
 {
     public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : class, new()
     {
-        private DbContext _context;
-        private SqlSugarClient _db;
-        private SimpleClient<TEntity> _entityDb;
+        private readonly ISqlSugarClient _db;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public DbContext Context
-        {
-            get { return _context; }
-            set { _context = value; }
-        }
-        internal SqlSugarClient Db
+
+        internal ISqlSugarClient Db
         {
             get { return _db; }
-            private set { _db = value; }
         }
-        internal SimpleClient<TEntity> entityDb
+
+        public BaseRepository(IUnitOfWork unitOfWork)
         {
-            get { return _entityDb; }
-            private set { _entityDb = value; }
-        }
-        public BaseRepository()
-        {
-            DbContext.Init(BaseDBConfig.ConnectionString, (DbType)BaseDBConfig.DbType);
-            _context = DbContext.GetDbContext();
-            _db = _context.Db;
-            _entityDb = _context.GetEntityDB<TEntity>(_db);
+            _unitOfWork = unitOfWork;
+            _db = unitOfWork.GetDbClient();
+            //DbContext.Init(BaseDBConfig.ConnectionString, (DbType)BaseDBConfig.DbType);
         }
 
 
@@ -138,7 +129,13 @@ namespace Blog.Core.Repository.Base
 
         public async Task<bool> Update(string strSql, SugarParameter[] parameters = null)
         {
-            return await Task.Run(() => _db.Ado.ExecuteCommand(strSql, parameters) > 0);
+            //return await Task.Run(() => _db.Ado.ExecuteCommand(strSql, parameters) > 0);
+            return await _db.Ado.ExecuteCommandAsync(strSql, parameters) > 0;
+        }
+
+        public async Task<bool> Update(object operateAnonymousObjects)
+        {
+            return await _db.Updateable<TEntity>(operateAnonymousObjects).ExecuteCommandAsync() > 0;
         }
 
         public async Task<bool> Update(
@@ -166,11 +163,11 @@ namespace Blog.Core.Repository.Base
             IUpdateable<TEntity> up = _db.Updateable(entity);
             if (lstIgnoreColumns != null && lstIgnoreColumns.Count > 0)
             {
-                up = up.IgnoreColumns(it => lstIgnoreColumns.Contains(it));
+                up = up.IgnoreColumns(lstIgnoreColumns.ToArray());
             }
             if (lstColumns != null && lstColumns.Count > 0)
             {
-                up = up.UpdateColumns(it => lstColumns.Contains(it));
+                up = up.UpdateColumns(lstColumns.ToArray());
             }
             if (!string.IsNullOrEmpty(strWhere))
             {
@@ -224,7 +221,6 @@ namespace Blog.Core.Repository.Base
         /// <returns>数据列表</returns>
         public async Task<List<TEntity>> Query()
         {
-            //return await Task.Run(() => _entityDb.GetList());
             return await _db.Queryable<TEntity>().ToListAsync();
         }
 
@@ -248,7 +244,6 @@ namespace Blog.Core.Repository.Base
         /// <returns>数据列表</returns>
         public async Task<List<TEntity>> Query(Expression<Func<TEntity, bool>> whereExpression)
         {
-            //return await Task.Run(() => _entityDb.GetList(whereExpression));
             return await _db.Queryable<TEntity>().WhereIF(whereExpression != null, whereExpression).ToListAsync();
         }
 
@@ -370,24 +365,51 @@ namespace Blog.Core.Repository.Base
 
 
 
-
-        public async Task<List<TEntity>> QueryPage(Expression<Func<TEntity, bool>> whereExpression,
-        int intPageIndex = 0, int intPageSize = 20, string strOrderByFileds = null)
+        /// <summary>
+        /// 分页查询[使用版本，其他分页未测试]
+        /// </summary>
+        /// <param name="whereExpression">条件表达式</param>
+        /// <param name="intPageIndex">页码（下标0）</param>
+        /// <param name="intPageSize">页大小</param>
+        /// <param name="strOrderByFileds">排序字段，如name asc,age desc</param>
+        /// <returns></returns>
+        public async Task<PageModel<TEntity>> QueryPage(Expression<Func<TEntity, bool>> whereExpression, int intPageIndex = 1, int intPageSize = 20, string strOrderByFileds = null)
         {
-            //return await Task.Run(() => _db.Queryable<TEntity>()
-            //.OrderByIF(!string.IsNullOrEmpty(strOrderByFileds), strOrderByFileds)
-            //.WhereIF(whereExpression != null, whereExpression)
-            //.ToPageList(intPageIndex, intPageSize));
-            return await _db.Queryable<TEntity>()
-            .OrderByIF(!string.IsNullOrEmpty(strOrderByFileds), strOrderByFileds)
-            .WhereIF(whereExpression != null, whereExpression)
-            .ToPageListAsync(intPageIndex, intPageSize);
+
+            RefAsync<int> totalCount = 0;
+            var list = await _db.Queryable<TEntity>()
+             .OrderByIF(!string.IsNullOrEmpty(strOrderByFileds), strOrderByFileds)
+             .WhereIF(whereExpression != null, whereExpression)
+             .ToPageListAsync(intPageIndex, intPageSize, totalCount);
+
+            int pageCount = (Math.Ceiling(totalCount.ObjToDecimal() / intPageSize.ObjToDecimal())).ObjToInt();
+            return new PageModel<TEntity>() { dataCount = totalCount, pageCount = pageCount, page = intPageIndex, PageSize = intPageSize, data = list };
         }
 
 
-
+        /// <summary> 
+        ///查询-多表查询
+        /// </summary> 
+        /// <typeparam name="T">实体1</typeparam> 
+        /// <typeparam name="T2">实体2</typeparam> 
+        /// <typeparam name="T3">实体3</typeparam>
+        /// <typeparam name="TResult">返回对象</typeparam>
+        /// <param name="joinExpression">关联表达式 (join1,join2) => new object[] {JoinType.Left,join1.UserNo==join2.UserNo}</param> 
+        /// <param name="selectExpression">返回表达式 (s1, s2) => new { Id =s1.UserNo, Id1 = s2.UserNo}</param>
+        /// <param name="whereLambda">查询表达式 (w1, w2) =>w1.UserNo == "")</param> 
+        /// <returns>值</returns>
+        public async Task<List<TResult>> QueryMuch<T, T2, T3, TResult>(
+            Expression<Func<T, T2, T3, object[]>> joinExpression,
+            Expression<Func<T, T2, T3, TResult>> selectExpression,
+            Expression<Func<T, T2, T3, bool>> whereLambda = null) where T : class, new()
+        {
+            if (whereLambda == null)
+            {
+                return await _db.Queryable(joinExpression).Select(selectExpression).ToListAsync();
+            }
+            return await _db.Queryable(joinExpression).Where(whereLambda).Select(selectExpression).ToListAsync();
+        }
 
     }
-
 
 }

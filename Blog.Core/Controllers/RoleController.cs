@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Blog.Core.Common.HttpContextUser;
 using Blog.Core.IServices;
 using Blog.Core.Model;
 using Blog.Core.Model.Models;
@@ -9,57 +10,48 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Blog.Core.Controllers
 {
+    /// <summary>
+    /// 角色管理
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize(PermissionNames.Permission)]
+    [Authorize(Permissions.Name)]
     public class RoleController : ControllerBase
     {
         readonly IRoleServices _roleServices;
+        readonly IUser _user;
 
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        /// <param name="roleServices"></param>
-        public RoleController(IRoleServices roleServices )
+     
+        public RoleController(IRoleServices roleServices, IUser user)
         {
             _roleServices = roleServices;
+            _user = user;
         }
 
+        /// <summary>
+        /// 获取全部角色
+        /// </summary>
+        /// <param name="page"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
         // GET: api/User
         [HttpGet]
         public async Task<MessageModel<PageModel<Role>>> Get(int page = 1, string key = "")
         {
-            var data = new MessageModel<PageModel<Role>>();
-            int intTotalCount = 50;
-            int totalCount = 0;
-            int pageCount = 1;
-
-            var roles = await _roleServices.Query(a => a.IsDeleted != true );
-
-            if (!string.IsNullOrEmpty(key))
+            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
             {
-                roles = roles.Where(t => (t.Name != null && t.Name.Contains(key))).ToList();
+                key = "";
             }
 
+            int intPageSize = 50;
 
-            //筛选后的数据总数
-            totalCount = roles.Count;
-            //筛选后的总页数
-            pageCount = (Math.Ceiling(totalCount.ObjToDecimal() / intTotalCount.ObjToDecimal())).ObjToInt();
-
-            roles = roles.OrderByDescending(d => d.Id).Skip((page - 1) * intTotalCount).Take(intTotalCount).ToList();
+            var data = await _roleServices.QueryPage(a => a.IsDeleted != true && (a.Name != null && a.Name.Contains(key)), page, intPageSize, " Id desc ");
 
             return new MessageModel<PageModel<Role>>()
             {
                 msg = "获取成功",
-                success = totalCount >= 0,
-                response = new PageModel<Role>()
-                {
-                    page = page,
-                    pageCount = pageCount,
-                    dataCount = totalCount,
-                    data = roles,
-                }
+                success = data.dataCount >= 0,
+                response = data
             };
 
         }
@@ -71,11 +63,19 @@ namespace Blog.Core.Controllers
             return "value";
         }
 
+        /// <summary>
+        /// 添加角色
+        /// </summary>
+        /// <param name="role"></param>
+        /// <returns></returns>
         // POST: api/User
         [HttpPost]
         public async Task<MessageModel<string>> Post([FromBody] Role role)
         {
             var data = new MessageModel<string>();
+
+            role.CreateId = _user.ID;
+            role.CreateBy = _user.Name;
 
             var id = (await _roleServices.Add(role));
             data.success = id > 0;
@@ -88,6 +88,11 @@ namespace Blog.Core.Controllers
             return data;
         }
 
+        /// <summary>
+        /// 更新角色
+        /// </summary>
+        /// <param name="role"></param>
+        /// <returns></returns>
         // PUT: api/User/5
         [HttpPut]
         public async Task<MessageModel<string>> Put([FromBody] Role role)
@@ -106,6 +111,11 @@ namespace Blog.Core.Controllers
             return data;
         }
 
+        /// <summary>
+        /// 删除角色
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         // DELETE: api/ApiWithActions/5
         [HttpDelete]
         public async Task<MessageModel<string>> Delete(int id)
